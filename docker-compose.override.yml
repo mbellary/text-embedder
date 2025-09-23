@@ -1,0 +1,78 @@
+version: '3.8'
+
+services:
+  # Local AWS emulation
+  localstack:
+    image: localstack/localstack:latest
+    container_name: localstack
+    ports:
+      - "4566:4566"        # LocalStack Gateway
+      - "4571:4571"
+    environment:
+      - SERVICES=s3,sqs,dynamodb
+      - DEFAULT_REGION=us-east-1
+      - DEBUG=1
+    volumes:
+      - "./.localstack:/var/lib/localstack"
+      - "/var/run/docker.sock:/var/run/docker.sock"
+
+  # Local OpenSearch
+  opensearch:
+    image: opensearchproject/opensearch:2.13.0
+    container_name: opensearch
+    environment:
+      - discovery.type=single-node
+      #- plugins.security.disabled=true
+      - DISABLE_SECURITY_PLUGIN=true
+      - "OPENSEARCH_JAVA_OPTS=-Xms512m -Xmx512m"
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    ports:
+      - "9200:9200"   # REST API
+    healthcheck:
+      test: ["CMD-SHELL", "curl -s http://localhost:9200/_cluster/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Prometheus for metrics scraping
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+
+  # Worker (your async embedder service)
+#  text-embedder-worker:
+#    build:
+#      context: .
+#      dockerfile: Dockerfile.dev
+#    container_name: text-embedder-worker
+#    env_file:
+#      - src/text_embedder/.env.localstack
+#    environment:
+#      - PYTHONPATH=/app/src
+#    depends_on:
+#      - localstack
+#      - opensearch
+
+  # API service (CRUD + /health)
+#  text-embedder-api:
+#    build:
+#      context: .
+#      dockerfile: Dockerfile.dev
+#    container_name: text-embedder-api
+#    command: uv run uvicorn text_embedder.api:app --host 0.0.0.0 --port 8080 --reload
+#    env_file:
+#      - src/text_embedder/.env.localstack
+#    environment:
+#      - PYTHONPATH=/app/src
+#    ports:
+#      - "8080:8080"
+#    depends_on:
+#      - opensearch
+#      - localstack

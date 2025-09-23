@@ -16,6 +16,9 @@ def _sign_request(method: str, url: str, body: bytes = b"", service="es", region
     Create headers with AWS SigV4 signature for raw HTTP request to OpenSearch.
     Returns dict(headers).
     """
+    if OPENSEARCH_HOST.startswith("http://localhost"):
+        return {}
+
     region = AWS_REGION
     # Get credentials synchronously from boto3
     boto_session = boto3.session.Session()
@@ -31,7 +34,6 @@ async def create_index():
     Create a vector-aware index for embeddings.
     """
     url = f"{OPENSEARCH_HOST}/{OPENSEARCH_INDEX}"
-    headers = _sign_request("PUT", url, service="es")
 
     body = {
         "settings": {"index": {"knn": True}},
@@ -45,8 +47,12 @@ async def create_index():
             }
         },
     }
+    body_bytes = json.dumps(body).encode("utf-8")
+    headers = _sign_request("PUT", url, body_bytes, service="es")
+    headers["Content-Type"] = "application/json"
+
     async with aiohttp.ClientSession() as session:
-        async with session.put(url, data=json.dumps(body), headers=headers) as resp:
+        async with session.put(url, data=body_bytes, headers=headers) as resp:
             text = await resp.text()
             if resp.status not in (200, 201):
                 logger.error("Failed to create index: %s", text)
@@ -127,6 +133,7 @@ async def index_exists() -> bool:
     url = f"{OPENSEARCH_HOST}/{OPENSEARCH_INDEX}"
     headers = _sign_request("HEAD", url, service="es")
 
+    logger.info("Checking if the index exists..")
     async with aiohttp.ClientSession() as session:
         async with session.head(url, headers=headers) as resp:
             if resp.status == 200:
@@ -151,3 +158,21 @@ async def ensure_index(dimension: int):
 
     logger.info("Creating index '%s' with dimension %s", OPENSEARCH_INDEX, dimension)
     return await create_index()
+
+async def purge_all_documents():
+    """
+    Delete all documents from the OpenSearch index without dropping the mapping.
+    """
+    url = f"{OPENSEARCH_HOST}/{OPENSEARCH_INDEX}/_delete_by_query"
+    body = {"query": {"match_all": {}}}
+    body_bytes = json.dumps(body).encode("utf-8")
+
+    headers = _sign_request("POST", url, body_bytes, service="es")
+    headers["Content-Type"] = "application/json"
+
+    async with aiohttp.ClientSession() as session:
+        async with session.post(url, data=body_bytes, headers=headers) as resp:
+            text = await resp.text()
+            if resp.status != 200:
+                raise RuntimeError(f"Purge failed: {resp.status} {text}")
+            return json.loads(text)

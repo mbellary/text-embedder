@@ -1,10 +1,10 @@
 import aioboto3
 import boto3
 import os
-from text_extractor.config import AWS_REGION, AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, LOCALSTACK_URL, APP_ENV
-from text_extractor.logger import get_logger
+from text_embedder.config import AWS_REGION, AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, LOCALSTACK_URL, APP_ENV
+from text_embedder.logger import get_logger
 
-logger = get_logger("extractor_worker.clients")
+logger = get_logger("text_embedder.clients")
 
 # aioboto3 session
 _session = aioboto3.Session(region_name=AWS_REGION)

@@ -1,26 +1,28 @@
 import asyncio
 import json
 import os
-from text_embedder.aws_clients import get_aboto3_client
+from text_embedder.aws_clients import get_aboto3_client, get_boto3_client
 from text_embedder.config import ( METRICS_HOST,
                                    METRICS_PORT,
-                                   OCR_JSONL_SQS_QUEUE_NAME,
+                                   OCR_OUTPUT_JSONL_SQS_QUEUE_NAME,
                                    MAX_MESSAGES,
                                    POLL_INTERVAL,
                                     CONCURRENCY)
 from text_embedder.processor import process_file
 from text_embedder.logger import get_logger
-from text_extractor.metrics_server import start_metrics_server
+from text_embedder.metrics_server import start_metrics_server
 
 logger = get_logger("text_embedder.worker")
 
 async def poll_loop():
     # Start prometheus server in background thread
     while True:
-        client = await get_aboto3_client("sqs")
-        queue_response = client.get_queue_url(QueueName=OCR_JSONL_SQS_QUEUE_NAME)
-        queue_url=queue_response["QueueUrl"]
-        async with client as sqs:
+        # client = await get_aboto3_client("sqs")
+        # queue_response = client.get_queue_url(QueueName=OCR_OUTPUT_JSONL_SQS_QUEUE_NAME)
+        # queue_url=queue_response["QueueUrl"]
+        async with await get_aboto3_client("sqs") as sqs:
+            queue_response = await sqs.get_queue_url(QueueName=OCR_OUTPUT_JSONL_SQS_QUEUE_NAME)
+            queue_url = queue_response["QueueUrl"]
             resp = await sqs.receive_message(
                 QueueUrl=queue_url,
                 MaxNumberOfMessages=MAX_MESSAGES,

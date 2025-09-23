@@ -19,12 +19,18 @@ dependencies = [
     "watchtower>=3.4.0",
     "pydantic>=1.10",
     "fastapi>=0.95.0",
-    "uvicorn>=0.22.0"
+    "uvicorn>=0.22.0",
+    "localstack-client>=2.10",
+    "awscli-local>=0.22.2",
+    "openai>=1.108.2",
+    "requests>=2.32.5",
 ]
 
 
 [project.scripts]
 worker = "text_embedder.worker:start"
+api = "text_embedder.api:app"
+purge = "text_embedder.purge:run"
 
 [build-system]
 requires = ["hatchling"]

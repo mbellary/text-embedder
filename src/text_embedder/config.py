@@ -3,7 +3,7 @@ from dotenv import load_dotenv, dotenv_values
 from text_embedder.logger import get_logger
 from pathlib import Path
 
-logger = get_logger("enqueue_worker.config")
+logger = get_logger("text_embedder.config")
 
 PACKAGE_DIR = Path(__file__).resolve().parent
 
@@ -31,6 +31,12 @@ AWS_ACCESS_KEY_ID=_env("AWS_ACCESS_KEY_ID", None) #if use_localstack else None
 AWS_SECRET_ACCESS_KEY=_env("AWS_SECRET_ACCESS_KEY", None) #if use_localstack else None
 LOCALSTACK_URL=_env("LOCALSTACK_URL", None) #if use_localstack else None
 
+# Model Provider
+MODEL_PROVIDER = _env("MODEL_PROVIDER", "bedrock")
+
+# OPEN API Key
+OPENAI_API_KEY = _env("OPENAI_API_KEY", "")
+OPENAI_EMBEDDING_MODEL= _env("OPENAI_EMBEDDING_MODEL", "")
 
 # Mistral Credentials
 MISTRAL_API_KEY=_env("MISTRAL_API_KEY", "")
@@ -47,6 +53,8 @@ PDF_OCR_PARQUET_SQS_QUEUE_NAME = _env("PDF_OCR_PARQUET_SQS_QUEUE_NAME", "parquet
 PDF_OCR_PARQUET_DLQ_QUEUE_NAME = _env("PDF_OCR_PARQUET_DLQ_QUEUE_NAME", "parquet-dlq")
 OCR_JSONL_SQS_QUEUE_NAME = _env("OCR_JSONL_SQS_QUEUE_NAME", "jsonl-queue")
 OCR_JSONL_DLQ_QUEUE_NAME = _env("OCR_JSONL_DLQ_QUEUE_NAME", "jsonl-dlq")
+OCR_OUTPUT_JSONL_SQS_QUEUE_NAME= _env("OCR_OUTPUT_JSONL_SQS_QUEUE_NAME", "ocr-jsonl-queue")  #output of OCR provider is published here
+OCR_OUTPUT_JSONL_DLQ_QUEUE_NAME= _env("OCR_OUTPUT_JSONL_DLQ_QUEUE_NAME", "ocr-jsonl-dlq")
 
 # Dynamo DB table
 PDF_FILE_STATE_NAME = _env("PDF_FILE_STATE_NAME", "pdf-processing-state")
@@ -89,11 +97,12 @@ JSONL_MAX_CHUNK_SIZE_MB = int(_env("JSONL_MAX_CHUNK_SIZE_MB", "40"))
 JSONL_MAX_NUM_PAGES = int(_env("JSONL_MAX_NUM_PAGES", "950"))
 
 #OpenSearch
-OPENSEARCH_HOST= _env("OPENSEARCH_HOST", "")
+OPENSEARCH_HOST= _env("OPENSEARCH_HOST", "http://localhost:9200")
 OPENSEARCH_INDEX= _env("OPENSEARCH_INDEX", "text-embeds")
 
 #Bedrock
 BEDROCK_MODEL_ID= _env("BEDROCK_MODEL_ID", "")
+BEDROCK_EMBEDDING_OUTPUT_DIM = _env("BEDROCK_EMBEDDING_OUTPUT_DIM", "")
 
 #APP
 CONCURRENCY= int(_env("CONCURRENCY", "8"))
