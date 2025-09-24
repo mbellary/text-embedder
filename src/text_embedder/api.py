@@ -2,15 +2,19 @@ from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 from typing import Any, Dict
 import asyncio
+import uvicorn
 from text_embedder.opensearch_client import index_document, search, delete_document, vector_search, index_exists
 from text_embedder.logger import get_logger
-from text_embedder.embedder import invoke_bedrock_embedding
+from text_embedder.embedder import invoke_embedding_model
 from text_embedder.config import (
                                     OPENSEARCH_HOST,
                                     OPENSEARCH_INDEX,
                                     OCR_S3_BUCKET,
                                     OCR_JSONL_SQS_QUEUE_NAME,
-                                    EMBEDDER_PAGE_STATE_NAME
+                                    EMBEDDER_PAGE_STATE_NAME,
+API_HOST,
+API_PORT,
+APP_ENV
 )
 from text_embedder.aws_clients import get_boto3_client
 
@@ -76,7 +80,7 @@ async def healthcheck():
     # --- Bedrock ---
     try:
         # Minimal test: embed a short dummy string
-        vector = await invoke_bedrock_embedding("healthcheck")
+        vector = await invoke_embedding_model("healthcheck")
         if isinstance(vector, list) and len(vector) > 0:
             checks["bedrock"] = f"ok (dim={len(vector)})"
         else:
@@ -114,7 +118,7 @@ async def do_search(q: str, size: int = 10):
 @app.post("/semantic-search")
 async def semantic_search(query: str, k: int = 5):
     # embed the query with Bedrock
-    vector = await invoke_bedrock_embedding(query)
+    vector = await invoke_embedding_model(query)
 
     res = await vector_search(vector, k=k)
     return res
@@ -127,3 +131,15 @@ async def delete_doc(doc_id: str):
     except Exception as e:
         logger.exception("Delete error")
         raise HTTPException(status_code=500, detail=str(e))
+
+
+def main():
+    uvicorn.run(
+        "text_embedder.api:app",
+        host=API_HOST,
+        port=API_PORT,
+        reload=APP_ENV != "production"
+    )
+
+if __name__ == "__main__":
+    main()

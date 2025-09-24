@@ -1,7 +1,7 @@
 import asyncio
 import uuid
 from text_embedder.utils import fetch_s3_jsonl, change_dynamodb_status
-from text_embedder.embedder import invoke_bedrock_embedding, invoke_model
+from text_embedder.embedder import invoke_bedrock_embedding, invoke_embedding_model
 from text_embedder.opensearch_client import index_document, create_index, ensure_index
 from text_embedder.logger import get_logger
 from text_embedder.config import CONCURRENCY
@@ -36,13 +36,10 @@ async def process_file(s3_key: str):
             async with sem:
                 try:
                     text = page.get("text", "")
-                    vector = await invoke_model(text)
-
-                    # ensure index is created with correct dimension
-                    await ensure_index(len(vector))
+                    vector = await invoke_embedding_model(text)
 
                     # build document
-                    doc_id = page.get("page_id") or str(uuid.uuid4())
+                    doc_id = page.get("doc_id") or str(uuid.uuid4())
                     document = {
                         "file_key": s3_key,
                         "page_num": page.get("page_num"),

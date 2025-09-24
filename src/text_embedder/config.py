@@ -10,7 +10,6 @@ PACKAGE_DIR = Path(__file__).resolve().parent
 
 APP_ENV = os.getenv("APP_ENV", "production").lower()
 
-
 if APP_ENV == "localstack":
     load_dotenv(PACKAGE_DIR / ".env.localstack")
     logger.info('Loaded localstack environment variables')
@@ -36,7 +35,6 @@ MODEL_PROVIDER = _env("MODEL_PROVIDER", "bedrock")
 
 # OPEN API Key
 OPENAI_API_KEY = _env("OPENAI_API_KEY", "")
-OPENAI_EMBEDDING_MODEL= _env("OPENAI_EMBEDDING_MODEL", "")
 
 # Mistral Credentials
 MISTRAL_API_KEY=_env("MISTRAL_API_KEY", "")
@@ -100,9 +98,9 @@ JSONL_MAX_NUM_PAGES = int(_env("JSONL_MAX_NUM_PAGES", "950"))
 OPENSEARCH_HOST= _env("OPENSEARCH_HOST", "http://localhost:9200")
 OPENSEARCH_INDEX= _env("OPENSEARCH_INDEX", "text-embeds")
 
-#Bedrock
-BEDROCK_MODEL_ID= _env("BEDROCK_MODEL_ID", "")
-BEDROCK_EMBEDDING_OUTPUT_DIM = _env("BEDROCK_EMBEDDING_OUTPUT_DIM", "")
+#Embeddings Model
+EMBEDDING_MODEL= _env("EMBEDDING_MODEL", "amazon.titan-embed-text-v2:0")
+EMBEDDING_OUTPUT_DIM = _env("EMBEDDING_OUTPUT_DIM", "1024")
 
 #APP
 CONCURRENCY= int(_env("CONCURRENCY", "8"))

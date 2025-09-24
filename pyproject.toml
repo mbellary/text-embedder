@@ -29,7 +29,7 @@ dependencies = [
 
 [project.scripts]
 worker = "text_embedder.worker:start"
-api = "text_embedder.api:app"
+api = "text_embedder.api:main"
 purge = "text_embedder.purge:run"
 
 [build-system]

@@ -5,7 +5,7 @@ from botocore.auth import SigV4Auth
 from botocore.awsrequest import AWSRequest
 from botocore.credentials import Credentials, ReadOnlyCredentials
 from botocore.session import Session as BotoSession
-from text_embedder.config import AWS_REGION, OPENSEARCH_HOST, OPENSEARCH_INDEX, BEDROCK_EMBEDDING_OUTPUT_DIM
+from text_embedder.config import AWS_REGION, OPENSEARCH_HOST, OPENSEARCH_INDEX, EMBEDDING_OUTPUT_DIM
 from text_embedder.logger import get_logger
 import boto3
 
@@ -43,7 +43,7 @@ async def create_index():
                 "page_num": {"type": "integer"},
                 "text": {"type": "text"},
                 "metadata": {"type": "object"},
-                "embedding": {"type": "knn_vector", "dimension": BEDROCK_EMBEDDING_OUTPUT_DIM},
+                "embedding": {"type": "knn_vector", "dimension": EMBEDDING_OUTPUT_DIM},
             }
         },
     }
@@ -99,7 +99,8 @@ async def vector_search(vector: list[float], k: int = 5):
                     "k": k
                 }
             }
-        }
+        },
+        "min_score": 0.50
     }
 
     body_bytes = json.dumps(body).encode("utf-8")
@@ -110,6 +111,7 @@ async def vector_search(vector: list[float], k: int = 5):
             url, data=body_bytes, headers={**headers, "Content-Type": "application/json"}
         ) as resp:
             text = await resp.text()
+            logger.info("Vector search succeeded")
             if resp.status != 200:
                 logger.error("Vector search failed %s %s", resp.status, text)
                 raise RuntimeError(f"Vector search failed: {resp.status} {text}")

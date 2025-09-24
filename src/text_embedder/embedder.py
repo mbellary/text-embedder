@@ -3,7 +3,7 @@ import requests
 import os
 
 from text_embedder.aws_clients import get_aboto3_client
-from text_embedder.config import BEDROCK_MODEL_ID, OPENAI_API_KEY, OPENAI_EMBEDDING_MODEL
+from text_embedder.config import EMBEDDING_MODEL, OPENAI_API_KEY
 from text_embedder.logger import get_logger
 from openai import OpenAI
 
@@ -21,7 +21,7 @@ async def invoke_bedrock_embedding(text: str):
 
     async with await get_aboto3_client("bedrock-runtime") as br:
         try:
-            model_id = BEDROCK_MODEL_ID
+            model_id = EMBEDDING_MODEL
             # Prepare input; model-specific. This is generic JSON body.
             payload = {"input": text}
             resp = await br.invoke_model(
@@ -49,7 +49,7 @@ async def invoke_bedrock_embedding(text: str):
             logger.error(f'Failed to embed the text - {dre}')
 
 
-async def invoke_model(text: str):
+async def invoke_embedding_model(text: str):
     """
     Adapter to invoke LLM across providers:
       - openai → OpenAI API (gpt-4, gpt-4o-mini, etc.)
@@ -62,7 +62,7 @@ async def invoke_model(text: str):
         logger.info("Initializing Open API model")
         client = OpenAI(api_key=OPENAI_API_KEY)
         response = client.embeddings.create(
-            model=OPENAI_EMBEDDING_MODEL,
+            model=EMBEDDING_MODEL,
             input=text
         )
         return response.data[0].embedding

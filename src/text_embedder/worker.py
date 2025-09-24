@@ -11,11 +11,31 @@ from text_embedder.config import ( METRICS_HOST,
 from text_embedder.processor import process_file
 from text_embedder.logger import get_logger
 from text_embedder.metrics_server import start_metrics_server
+from text_embedder.opensearch_client import ensure_index
+from text_embedder.embedder import invoke_embedding_model
 
 logger = get_logger("text_embedder.worker")
 
+async def bootstrap_index():
+    """
+    On worker startup, create the OpenSearch index if it doesn't exist.
+    Uses Bedrock to infer embedding dimension.
+    """
+    try:
+        logger.info("Bootstrapping OpenSearch index...")
+        dummy_vector = await invoke_embedding_model("bootstrap test")
+        dim = len(dummy_vector)
+        await ensure_index(dim)
+        logger.info("Index bootstrap complete (dim=%s)", dim)
+    except Exception as e:
+        logger.exception("Index bootstrap failed: %s", e)
+        raise
+
 async def poll_loop():
-    # Start prometheus server in background thread
+
+    # Ensure index is ready before polling
+    await bootstrap_index()
+
     while True:
         # client = await get_aboto3_client("sqs")
         # queue_response = client.get_queue_url(QueueName=OCR_OUTPUT_JSONL_SQS_QUEUE_NAME)
