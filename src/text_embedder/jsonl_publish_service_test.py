@@ -26,7 +26,7 @@ This script simulates the pdf_processor modules "processor" function.
 # S3_ENDPOINT = "http://localhost:4566"
 
 LOCAL_FILES = [
-    ('C:\\Users\\bmoha\\Work\\projects\\AWS\\text-embedder\\data\\ocr_sample_output.jsonl', "jsonl/output/ocr_sample_output.jsonl")]
+    (r'C:\Users\bmoha\Work\projects\AWS\text-embedder\data\24c5ab4a-a340-4458-8902-07449b26972b_ocr_pages.jsonl', "ocr/24c5ab4a-a340-4458-8902-07449b26972b_ocr_pages.jsonl")]
 
 
 

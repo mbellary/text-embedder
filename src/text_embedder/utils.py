@@ -16,7 +16,11 @@ async def fetch_s3_jsonl(s3_key: str):
         resp = await s3.get_object(Bucket=OCR_S3_BUCKET, Key=s3_key)
         body = await resp['Body'].read()
         lines = body.decode('utf-8').splitlines()
-        return [json.loads(l) for l in lines if l.strip()]
+        #return [json.loads(l) for l in lines if l.strip()]
+        ocr_content = [json.loads(l) for l in lines if l.strip()]
+        for content in ocr_content:
+            pages = content['pages']
+        return pages
 
 async def delete_sqs_message(receipt_handle: str):
     client =  await get_aboto3_client("sqs")

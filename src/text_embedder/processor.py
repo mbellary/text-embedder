@@ -35,14 +35,14 @@ async def process_file(s3_key: str):
         async def embed_and_index(page):
             async with sem:
                 try:
-                    text = page.get("text", "")
+                    text = page.get("markdown", "")
                     vector = await invoke_embedding_model(text)
 
                     # build document
                     doc_id = page.get("doc_id") or str(uuid.uuid4())
                     document = {
                         "file_key": s3_key,
-                        "page_num": page.get("page_num"),
+                        "page_num": page.get("index"),
                         "text": text,
                         "metadata": page.get("metadata", {}),
                         "embedding": vector
@@ -55,6 +55,7 @@ async def process_file(s3_key: str):
                     logger.exception("Failed embed/index page %s: %s", page.get("page_num"), v)
                     raise
 
+        # Mistral OCR JSON data
         for p in pages:
             tasks.append(asyncio.create_task(embed_and_index(p)))
 
