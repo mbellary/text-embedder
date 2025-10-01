@@ -70,7 +70,7 @@ async def invoke_embedding_model(text: str):
     elif mode == "bedrock":
         # AWS Bedrock
         logger.info("Initializing Bedrock API model")
-        output = invoke_bedrock_embedding(text)
+        output = await invoke_bedrock_embedding(text)
         return output
     else:
         raise ValueError(f"Unknown MODEL_PROVIDER: {mode}")

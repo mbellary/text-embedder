@@ -20,14 +20,20 @@ def _sign_request(method: str, url: str, body: bytes = b"", service="es", region
         return {}
 
     region = AWS_REGION
-    # Get credentials synchronously from boto3
-    boto_session = boto3.session.Session()
-    creds = boto_session.get_credentials()
-    frozen = creds.get_frozen_credentials()
-    #aws_credentials = Credentials(creds.access_key, creds.secret_key, creds.token)
-    request = AWSRequest(method=method, url=url, data=body)
-    SigV4Auth(frozen, service, region).add_auth(request)
-    return dict(request.headers.items())
+    try:
+        # Get credentials synchronously from boto3
+        boto_session = boto3.session.Session()
+        creds = boto_session.get_credentials()
+        frozen = creds.get_frozen_credentials()
+        #aws_credentials = Credentials(creds.access_key, creds.secret_key, creds.token)
+        request = AWSRequest(method=method, url=url, data=body)
+        SigV4Auth(frozen, service, region).add_auth(request)
+        logger.info("Successfully Signed the request.")
+        return dict(request.headers.items())
+    except Exception as e:
+        logger.error(f'Failed to sign the request : {e}')
+        raise RuntimeError(f"Failed to sign the request: {e}")
+
 
 async def create_index():
     """
@@ -134,10 +140,12 @@ async def index_exists() -> bool:
     """
     url = f"{OPENSEARCH_HOST}/{OPENSEARCH_INDEX}"
     headers = _sign_request("HEAD", url, service="es")
-
+    logger.info(f"Opensearch URL : {url} - headers {headers}")
     logger.info("Checking if the index exists..")
     async with aiohttp.ClientSession() as session:
         async with session.head(url, headers=headers) as resp:
+            logger.info(f"Opensearch session head : {resp}")
+
             if resp.status == 200:
                 return True
             elif resp.status == 404:
