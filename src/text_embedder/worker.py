@@ -40,38 +40,43 @@ async def poll_loop():
         # client = await get_aboto3_client("sqs")
         # queue_response = client.get_queue_url(QueueName=OCR_OUTPUT_JSONL_SQS_QUEUE_NAME)
         # queue_url=queue_response["QueueUrl"]
-        async with await get_aboto3_client("sqs") as sqs:
-            queue_response = await sqs.get_queue_url(QueueName=OCR_OUTPUT_JSONL_SQS_QUEUE_NAME)
-            queue_url = queue_response["QueueUrl"]
-            resp = await sqs.receive_message(
-                QueueUrl=queue_url,
-                MaxNumberOfMessages=MAX_MESSAGES,
-                WaitTimeSeconds=10,
-                VisibilityTimeout=60
-            )
-            messages = resp.get("Messages", [])
-            if not messages:
-                await asyncio.sleep(POLL_INTERVAL)
-                continue
+        try:
+            async with await get_aboto3_client("sqs") as sqs:
+                queue_response = await sqs.get_queue_url(QueueName=OCR_OUTPUT_JSONL_SQS_QUEUE_NAME)
+                queue_url = queue_response["QueueUrl"]
+                logger.info(f"SQS queue url : {queue_url}")
+                resp = await sqs.receive_message(
+                    QueueUrl=queue_url,
+                    MaxNumberOfMessages=MAX_MESSAGES,
+                    WaitTimeSeconds=10,
+                    VisibilityTimeout=60
+                )
+                messages = resp.get("Messages", [])
+                if not messages:
+                    logger.info(f"Found no messages in queue - {OCR_OUTPUT_JSONL_SQS_QUEUE_NAME}")
+                    await asyncio.sleep(POLL_INTERVAL)
+                    continue
 
-            # process messages concurrently but limit concurrency
-            sem = asyncio.Semaphore(CONCURRENCY)
-            async def handle_message(msg):
-                async with sem:
-                    body = msg["Body"]
-                    # assume body contains {"s3_key": "..."}
-                    try:
-                        payload = json.loads(body)
-                        s3_key = payload["s3_key"]
-                        receipt_handle = msg["ReceiptHandle"]
-                        await process_file(s3_key)
-                        # delete message
-                        await sqs.delete_message(QueueUrl=queue_url, ReceiptHandle=receipt_handle)
-                    except Exception as e:
-                        logger.exception("Failed processing message: %s", e)
-                        # let message visibility timeout expire so message goes to DLQ after max receives
-            tasks = [asyncio.create_task(handle_message(m)) for m in messages]
-            await asyncio.gather(*tasks, return_exceptions=True)
+                # process messages concurrently but limit concurrency
+                sem = asyncio.Semaphore(CONCURRENCY)
+                async def handle_message(msg):
+                    async with sem:
+                        body = msg["Body"]
+                        # assume body contains {"s3_key": "..."}
+                        try:
+                            payload = json.loads(body)
+                            s3_key = payload["s3_key"]
+                            receipt_handle = msg["ReceiptHandle"]
+                            await process_file(s3_key)
+                            # delete message
+                            await sqs.delete_message(QueueUrl=queue_url, ReceiptHandle=receipt_handle)
+                        except Exception as e:
+                            logger.exception("Failed processing message: %s", e)
+                            # let message visibility timeout expire so message goes to DLQ after max receives
+                tasks = [asyncio.create_task(handle_message(m)) for m in messages]
+                await asyncio.gather(*tasks, return_exceptions=True)
+        except Exception as e:
+            logger.error(f"Worker failed {e}")
 
 def start():
     start_metrics_server(host=os.environ.get("METRICS_HOST", "0.0.0.0"),

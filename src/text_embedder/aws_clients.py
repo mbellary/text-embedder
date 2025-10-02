@@ -60,11 +60,14 @@ async def get_aboto3_client(service):
         os.environ.pop("AWS_ACCESS_KEY_ID", None)
         os.environ.pop("AWS_SECRET_ACCESS_KEY", None)
         aws_profile = os.getenv("AWS_PROFILE")
-        if aws_profile:
-            logger.info(f"Initializing client {service} in production using AWS_PROFILE {aws_profile}")
-            profile_session = aioboto3.Session(region_name=AWS_REGION , profile_name=aws_profile)
-            return profile_session.client(service)
-        else:
-            # No profile → IAM Role will be used (via metadata service)
-            logger.info(f"Initializing client {service} in production using IAM Role")
-            return _session.client(service, region_name=AWS_REGION)
+        try:
+            if aws_profile:
+                logger.info(f"Initializing client {service} in production using AWS_PROFILE {aws_profile}")
+                profile_session = aioboto3.Session(region_name=AWS_REGION , profile_name=aws_profile)
+                return profile_session.client(service)
+            else:
+                # No profile → IAM Role will be used (via metadata service)
+                logger.info(f"Initializing client {service} in production using IAM Role")
+                return _session.client(service, region_name=AWS_REGION)
+        except Exception as e:
+            raise RuntimeError(f"Failed to initialize {service} client: {e}")
