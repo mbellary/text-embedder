@@ -1,0 +1,25 @@
+{
+  "family": "worker-embedder-task",
+  "networkMode": "awsvpc",
+  "requiresCompatibilities": ["FARGATE"],
+  "cpu": "512",
+  "memory": "2048",
+  "executionRoleArn": "arn:aws:iam::226403923581:role/unstruct_ecsTaskExecutionRole",
+  "taskRoleArn": "arn:aws:iam::226403923581:role/ecsTaskRole-workers",
+  "containerDefinitions": [
+    {
+      "name": "worker-embedder",
+      "image": "226403923581.dkr.ecr.ap-south-1.amazonaws.com/unstruct/text-embedder@sha256:ac7a93ec328b90089e2e6578a6762e0b6527b5099159a4ffe87a8c2f69c69970",
+      "essential": true,
+      "portMappings": [{ "containerPort": 80, "protocol": "tcp" }],
+      "logConfiguration": {
+        "logDriver": "awslogs",
+        "options": {
+          "awslogs-group": "/ecs/worker-embedder",
+          "awslogs-region": "ap-south-1",
+          "awslogs-stream-prefix": "worker-embedder"
+        }
+      }
+    }
+  ]
+}
