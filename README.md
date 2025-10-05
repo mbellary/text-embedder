@@ -231,3 +231,7 @@ Apache License 2.0 — see [`LICENSE`](./LICENSE).
 ## 🧾 Author
 
 **Mohammed Ali** • https://github.com/mbellary
+
+---
+
+> _Part of the **Unstruct Modular Data Pipeline** — a fully containerized, serverless-ready ecosystem for ingestion, processing, and search._
