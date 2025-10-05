@@ -1,5 +1,8 @@
 # text-embedder
 
+[![Powered by ChatGPT](https://img.shields.io/badge/Powered%20by-ChatGPT-10a37f?style=for-the-badge&logo=openai&logoColor=white)](https://openai.com/chatgpt)
+
+
 The **text-embedder** service is a component of the *Unstruct Modular Data Pipeline* that converts cleaned text into **vector embeddings** and publishes them for **semantic search and retrieval**.
 
 It supports **AWS Bedrock** (e.g., `amazon.titan-embed` / `titan-embedding`), Hugging Face/Sentence-Transformers, and can index vectors into **OpenSearch k-NN**. The service is containerized, integrates with **S3, SQS, DynamoDB**, and exposes **Prometheus** metrics for observability with **Grafana**.
@@ -234,4 +237,10 @@ Apache License 2.0 — see [`LICENSE`](./LICENSE).
 
 ---
 
+### 🤖 Powered by [ChatGPT](https://openai.com/chatgpt)
+_This project was documented and scaffolded with assistance from OpenAI’s ChatGPT._
+
+---
+
 > _Part of the **Unstruct Modular Data Pipeline** — a fully containerized, serverless-ready ecosystem for ingestion, processing, and search._
+
