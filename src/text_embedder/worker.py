@@ -4,7 +4,7 @@ import os
 from text_embedder.aws_clients import get_aboto3_client, get_boto3_client
 from text_embedder.config import ( METRICS_HOST,
                                    METRICS_PORT,
-                                   OCR_OUTPUT_JSONL_SQS_QUEUE_NAME,
+                                   PAGE_CHUNK_SQS_QUEUE_NAME,
                                    MAX_MESSAGES,
                                    POLL_INTERVAL,
                                     CONCURRENCY)
@@ -42,7 +42,7 @@ async def poll_loop():
         # queue_url=queue_response["QueueUrl"]
         try:
             async with await get_aboto3_client("sqs") as sqs:
-                queue_response = await sqs.get_queue_url(QueueName=OCR_OUTPUT_JSONL_SQS_QUEUE_NAME)
+                queue_response = await sqs.get_queue_url(QueueName=PAGE_CHUNK_SQS_QUEUE_NAME)
                 queue_url = queue_response["QueueUrl"]
                 logger.info(f"SQS queue url : {queue_url}")
                 resp = await sqs.receive_message(
@@ -53,7 +53,7 @@ async def poll_loop():
                 )
                 messages = resp.get("Messages", [])
                 if not messages:
-                    logger.info(f"Found no messages in queue - {OCR_OUTPUT_JSONL_SQS_QUEUE_NAME}")
+                    logger.info(f"Found no messages in queue - {PAGE_CHUNK_SQS_QUEUE_NAME}")
                     await asyncio.sleep(POLL_INTERVAL)
                     continue
 

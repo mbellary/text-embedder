@@ -8,9 +8,9 @@ from text_embedder.config import (
 AWS_ACCESS_KEY_ID,
 AWS_SECRET_ACCESS_KEY,
 LOCALSTACK_URL,
-OCR_S3_BUCKET,
-EMBEDDER_PAGE_STATE_NAME,
-OCR_OUTPUT_JSONL_SQS_QUEUE_NAME
+CHUNK_S3_BUCKET,
+CHUNK_PAGE_STATE_NAME,
+PAGE_CHUNK_SQS_QUEUE_NAME
 
 )
 
@@ -26,7 +26,7 @@ This script simulates the pdf_processor modules "processor" function.
 # S3_ENDPOINT = "http://localhost:4566"
 
 LOCAL_FILES = [
-    (r'C:\Users\bmoha\Work\projects\AWS\text-embedder\data\24c5ab4a-a340-4458-8902-07449b26972b_ocr_pages.jsonl', "ocr/24c5ab4a-a340-4458-8902-07449b26972b_ocr_pages.jsonl")]
+    (r'C:\Users\bmoha\Work\projects\AWS\unstruct\text-embedder\data\sample_id_aertw.jsonl', "chunks/sample_id_aertw.jsonl")]
 
 
 
@@ -36,7 +36,7 @@ def check_if_file_enqueued(ddb_client, s3_key):
     """
     try:
         response = ddb_client.get_item(
-            TableName=EMBEDDER_PAGE_STATE_NAME,
+            TableName=CHUNK_PAGE_STATE_NAME,
             Key={'s3_key': {'S': s3_key}}
         )
         item = response.get('Item')
@@ -69,7 +69,7 @@ def main():
         aws_secret_access_key=AWS_SECRET_ACCESS_KEY,
         endpoint_url=LOCALSTACK_URL)
 
-    s3_bucket = OCR_S3_BUCKET
+    s3_bucket = CHUNK_S3_BUCKET
     for local_file, key in LOCAL_FILES:
         s3_key = key
 
@@ -83,7 +83,7 @@ def main():
             response = check_if_file_enqueued(ddb_client, s3_key)
             if not response:
                 ddb_client.put_item(
-                    TableName=EMBEDDER_PAGE_STATE_NAME,
+                    TableName=CHUNK_PAGE_STATE_NAME,
                     Item={
                         's3_key': {'S': s3_key},
                         'status': {"S" : "enqueued"},
@@ -96,7 +96,7 @@ def main():
             print(f'Failed to update key {s3_key} to dynamo db: {ddb_e}')
 
         try:
-            queue_response = sqs_client.get_queue_url(QueueName=OCR_OUTPUT_JSONL_SQS_QUEUE_NAME)
+            queue_response = sqs_client.get_queue_url(QueueName=PAGE_CHUNK_SQS_QUEUE_NAME)
             queue_url = queue_response['QueueUrl']
             response = sqs_client.send_message(
                 QueueUrl=queue_url,

@@ -45,7 +45,8 @@ PDF_S3_PARQUET_PART_KEY=_env("PDF_S3_PARQUET_PART_KEY", "parquet")
 OCR_S3_BUCKET=_env("OCR_S3_BUCKET", "rag-ocr-s3-bucket")
 OCR_S3_JSONL_PART_KEY=_env("OCR_S3_JSONL_PART_KEY", "jsonl")
 OCR_S3_PAGES_PART_KEY=_env("OCR_S3_PAGES_PART_KEY", "ocr")
-
+CHUNK_S3_BUCKET=_env("CHUNK_S3_BUCKET", "rag-chunks-s3-bucket")
+CHUNK_S3_PART_KEY=_env("CHUNK_S3_PART_KEY", "chunks")
 
 
 PDF_OCR_PARQUET_SQS_QUEUE_NAME = _env("PDF_OCR_PARQUET_SQS_QUEUE_NAME", "parquet-queue")
@@ -54,6 +55,8 @@ OCR_JSONL_SQS_QUEUE_NAME = _env("OCR_JSONL_SQS_QUEUE_NAME", "jsonl-queue")
 OCR_JSONL_DLQ_QUEUE_NAME = _env("OCR_JSONL_DLQ_QUEUE_NAME", "jsonl-dlq")
 OCR_OUTPUT_JSONL_SQS_QUEUE_NAME= _env("OCR_OUTPUT_JSONL_SQS_QUEUE_NAME", "ocr-jsonl-queue")  #output of OCR provider is published here
 OCR_OUTPUT_JSONL_DLQ_QUEUE_NAME= _env("OCR_OUTPUT_JSONL_DLQ_QUEUE_NAME", "ocr-jsonl-dlq")
+PAGE_CHUNK_SQS_QUEUE_NAME= _env("PAGE_CHUNK_SQS_QUEUE_NAME", "page-chunk-queue")  #output of OCR provider is published here
+PAGE_CHUNK_DLQ_QUEUE_NAME= _env("PAGE_CHUNK_DLQ_QUEUE_NAME", "page-chunk-dlq")
 
 # Dynamo DB table
 PDF_FILE_STATE_NAME = _env("PDF_FILE_STATE_NAME", "pdf-processing-state")
@@ -68,7 +71,7 @@ OCR_JSONL_STATE_NAME = _env("OCR_JSONL_STATE_NAME", "ocr_jsonl_state")
 OCR_PAGE_STATE_NAME = _env("OCR_PAGE_STATE_NAME", "ocr_page_state")
 
 # tracks status of pages processed by embedding service provider
-EMBEDDER_PAGE_STATE_NAME = _env("EMBEDDER_PAGE_STATE_NAME", "embedder_page_state")
+CHUNK_PAGE_STATE_NAME = _env("CHUNK_PAGE_STATE_NAME", "chunk_page_state")
 
 # Worker tuning
 MAX_MESSAGES = int(_env("MAX_MESSAGES", "10"))

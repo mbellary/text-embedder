@@ -1,4 +1,5 @@
 import asyncio
+import json
 import uuid
 from text_embedder.utils import fetch_s3_jsonl, change_dynamodb_status
 from text_embedder.embedder import invoke_bedrock_embedding, invoke_embedding_model
@@ -33,16 +34,18 @@ async def process_file(s3_key: str):
         tasks = []
         sem = asyncio.Semaphore(CONCURRENCY)
         async def embed_and_index(page):
+            #print(f"DEBUG pages: {page}")
+            page = json.loads(page)
             async with sem:
+                logger.info(f"starting text embedding.")
                 try:
-                    text = page.get("markdown", "")
+                    text = page.get("text", "")
                     vector = await invoke_embedding_model(text)
 
                     # build document
-                    doc_id = page.get("doc_id") or str(uuid.uuid4())
+                    doc_id = page.get("id") or str(uuid.uuid4())
                     document = {
-                        "file_key": s3_key,
-                        "page_num": page.get("index"),
+                        "token_count": page.get("token_count"),
                         "text": text,
                         "metadata": page.get("metadata", {}),
                         "embedding": vector
@@ -57,7 +60,7 @@ async def process_file(s3_key: str):
 
         # Mistral OCR JSON data
         for p in pages:
-            tasks.append(asyncio.create_task(embed_and_index(p)))
+            tasks.append(asyncio.create_task(embed_and_index(p['chunks'])))
 
         # await all tasks; if any fail, propagate
         results = await asyncio.gather(*tasks, return_exceptions=True)
