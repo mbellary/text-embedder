@@ -47,7 +47,9 @@ async def process_file(s3_key: str):
                     document = {
                         "token_count": page.get("token_count"),
                         "text": text,
-                        "metadata": page.get("metadata", {}),
+                        "file_name": page.get("source", {}),
+                        "page_start":page.get("page_start", 0),
+                        "page_end": page.get("page_end", 0),
                         "embedding": vector
                     }
                     with INDEX_LATENCY.time():

@@ -1,20 +1,20 @@
 version: '3.8'
 
 services:
-  # Local AWS emulation
-  localstack:
-    image: localstack/localstack:latest
-    container_name: localstack
-    ports:
-      - "4566:4566"        # LocalStack Gateway
-      - "4571:4571"
-    environment:
-      - SERVICES=s3,sqs,dynamodb
-      - DEFAULT_REGION=us-east-1
-      - DEBUG=1
-    volumes:
-      - "./.localstack:/var/lib/localstack"
-      - "/var/run/docker.sock:/var/run/docker.sock"
+#  # Local AWS emulation
+#  localstack:
+#    image: localstack/localstack:latest
+#    container_name: localstack
+#    ports:
+#      - "4566:4566"        # LocalStack Gateway
+#      - "4571:4571"
+#    environment:
+#      - SERVICES=s3,sqs,dynamodb
+#      - DEFAULT_REGION=us-east-1
+#      - DEBUG=1
+#    volumes:
+#      - "./.localstack:/var/lib/localstack"
+#      - "/var/run/docker.sock:/var/run/docker.sock"
 
   # Local OpenSearch
   opensearch:
@@ -38,13 +38,13 @@ services:
       retries: 5
 
   # Prometheus for metrics scraping
-  prometheus:
-    image: prom/prometheus:latest
-    container_name: prometheus
-    ports:
-      - "9090:9090"
-    volumes:
-      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+#  prometheus:
+#    image: prom/prometheus:latest
+#    container_name: prometheus
+#    ports:
+#      - "9090:9090"
+#    volumes:
+#      - ./prometheus.yml:/etc/prometheus/prometheus.yml
 
   # Worker (your async embedder service)
 #  text-embedder-worker:
